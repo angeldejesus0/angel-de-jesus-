@@ -1,115 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UFT-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peliculas AP</title>
-    <style>
-    *{
-        box-sizing: border-box;
-    }
-
-    body{
-    background-color: rgb(30, 32, 170);
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    margin: 0;
-    }
-    
-    header{
-    padding: 1rem;
-    display: flex;
-    justify-content: flex-end;
-    background-color: rgb(20, 10, 107);
-    }
-    .search {
-        background-color: blueviolet;
-        border: 2px; solid var(--seconday color);
-        border-radius: 50px;
-        font-family: inherit;
-        font-size: 16px;
-        padding: 0.5cem 1rem;
-        color: blue;
-
-    }
-    .search::placeholder {
-        outline: none;
-        background-color: pink;
-    }
-    main{
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    .movie{
-        width: 300px;
-        margin: 1rem;
-        background-color: blue;
-        box-shadow: 0 4px 5px #000;
-        position: relative;
-        overflow: hidden;
-        border-radius: 3px;
-    }
-    .movie img{
-        width: 100%;
-    }
-    .movie-info {
-        color: #000;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.2rem;
-        padding: 0.5rem 1rem 1rem;
-        letter-spacing: 0.5px;
-    }
-    .movie-info h3 {
-        margin-top: 0%;
-    }
-        .movie-info span {
-            background-color: blue;
-            padding: 0.25rem 0.5rem;
-            border-radius: 3px;
-            font-weight: bold;
-        }
-        .movie-info span.blue {
-            color: blue;
-        }
-        .movie-info span.white {
-            color: white;
-        }
-        .movie-info span.red {
-            color: red;
-        }
-        .overview {
-            background-color: antiquewhite;
-            padding: 2rem;
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            max-height: 100%;
-            transform: translate(101%);
-            overflow-y: auto;
-            transition: transform 0.3s ease-in;
-        }
-        .movie:hover .overview {
-            transform: translate(0);
-        }
-      </style>
-
-</head>
-<body>
-
-    <head>
-      <meta charset="UTF-8">
-      <meta http-equiv="X-UA-compatible" content="IE=edge">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <title>Peliculas Api</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-
-    <nav class+="navbar navbar-light" style="background-color: black;">
+      
+            <nav class+="navbar navbar-light" style="background-color: black;">
       <div class="container">
         <a class="navbar-brand" href="index.html" style="color: white;">INICIO</a>
 
@@ -147,66 +47,173 @@
       </div>
     </nav>
     
-    <header>
-        <input type="text" id="search" class="search" placeholder="Buscar Peliculas" >
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        body{
+            background-color: #22254b;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            margin: 0;
+        }
+        header{
+            padding: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            background-color: #22254b;
+        }
+        .search{
+            background-color: transparent;
+            border: 2px solid #373b60;
+            border-radius: 50px;
+            font-family: inherit;
+            font-size: 15px;
+            padding: 0.5rem 1rem;
+            color: #fff;
+        }
+        .search::placeholder{
+            color: #7378c5;
+        }
+        .search:focus{
+            outline: none;
+            background-color: #373b69;
+        }
+        main{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .movie{
+            width: 300px;
+            margin: 1rem;
+            background-color: #373b60;
+            box-shadow: 0 4px 5px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            border-radius: 3px;
+        }
+        .movie img{
+            width: 100%;
+        }
+        .movie-info{
+            color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.2rem;
+            padding: 0.5rem 1rem 1rem;
+            letter-spacing: 0.5px;
+        }
+        .movie-info h3{
+            margin-top: 0;
+        }
+        .movie-info span{
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .movie-info span.blue{
+            background-color: blue;
+        }
+        .movie-info span.white{
+            background-color: white;
+        }
+        .movie-info span.red{
+            background-color: red;
+        }
+        .overview{
+            background-color: #fff;
+            padding: 2rem;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            max-height: 100%;
+            transform: translateY(101%);
+            overflow-y: auto;
+            transition: transform 0.3s ease-in;
+        }
+        .movie:hover .overview{
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <header> 
+        <form id="form">
+            <input type="text" id="search" class="search" placeholder="Buscar Peliculas">
+        </form>
     </header>
     <main id="main"></main>
 
     <script>
-        const API_URL = 'https://api-themoviedb.org/3/discover/movie?sort_by=populary.desc&api_key=3fd2be6f0c70a2a598f084ddfb75487c&page=1';
+        const API_URL = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=3fd2be6f0c70a2a598f084ddfb75487c&page=1';
         const IMG_PATH = 'https://image.tmdb.org/t/p/w1280';
-        const SEARCH_API = 'https://api-themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query="';
-     
-    const main = document.getElementById('main');
-    const form = document.getElementById('form');
-    const search =document.getElementById("search");
+        const SEARCH_API = 'https://api.themoviedb.org/3/search/movie?api_key=3fd2be6f0c70a2a598f084ddfb75487c&query=';
 
-    getMovies(API_URL)
-        async function getMovies(url){
-            const res = await fetch(url);
-            const data = await res.json();
+        const main = document.getElementById('main');
+        const form = document.getElementById('form');
+        const search = document.getElementById('search');
 
-            showMovies(data.results);
+        // Get initial movies
+        getMovies(API_URL);
+
+        async function getMovies(url) {
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                showMovies(data.results);
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+            }
         }
-        function showMovies(movies){
+
+        function showMovies(movies) {
             main.innerHTML = '';
 
-            movies.forEach(movie => {
-                const {title,poster_path, vote_average, overview} = movie;
+            movies.forEach((movie) => {
+                const { title, poster_path, vote_average, overview } = movie;
                 
-                const movieElements = document.createElement('div');
-                movieElements.classList.add('movie');
-                movieElements.innerHTML = `
-                    <img src ="${IMG_PATH + poster_path}" alt = "${title}">
-                   <div class = "movie-info">
-                    <h3>${title}</h3>
-                    <span class="${getClassByRate(vote_average)}">${vote_average}</span>
+                const movieElement = document.createElement('div');
+                movieElement.classList.add('movie');
+                
+                movieElement.innerHTML = `
+                    <img src="${IMG_PATH + poster_path}" alt="${title}">
+                    <div class="movie-info">
+                        <h3>${title}</h3>
+                        <span class="${getClassByRate(vote_average)}">${vote_average}</span>
                     </div>
                     <div class="overview">
-                    <h3>Overview</h3>
-                    ${overview}
-                    </div>`
-                        main.appendChild(movieElements);
-            })}
-            function getClassByRate(vote){
-                if (vote >= 8){
-                    return 'blue';
-                } else if (vote >= 5){
-                    return 'white';
-                }else {
-                    return 'red';}
+                        <h3>Overview</h3>
+                        ${overview}
+                    </div>
+                `;
+
+                main.appendChild(movieElement);
+            });
         }
-        form-addEventListener('submit', (e) => {
-            e. preventDefault()
-            const searchTerm = search.value;
-            if (searchTerm && searchTerm !== ''){
-                getMovies(SEARCH_API + searchTerm)
+
+        function getClassByRate(vote) {
+            if (vote >= 8) {
+                return 'blue';
+            } else if (vote >= 5) {
+                return 'white';
+            } else {
+                return 'red';
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const searchTerm = search.value.trim();
+            
+            if (searchTerm && searchTerm !== '') {
+                getMovies(SEARCH_API + encodeURIComponent(searchTerm));
                 search.value = '';
-            }else{
+            } else {
                 window.location.reload();
             }
-        })
-
+        });
     </script>
 </body>
 </html>
