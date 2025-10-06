@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Abigail: Acceso Clasificado</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Modal de términos -->
+    {% if show_modal %}
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Acceso Restringido</h2>
+            <p id="modal-text">Este sitio web contiene información clasificada y sensible. Al continuar, usted acepta no divulgar esta información y se compromete a respetar la confidencialidad de los datos aquí presentados.</p>
+            <div id="modal-buttons" class="modal-buttons">
+                <form action="{{ url_for('accept_terms') }}" method="post">
+                    <button type="submit" class="accept-btn">Aceptar</button>
+                </form>
+                <button type="button" class="reject-btn" id="reject-button">Rechazar</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Toast para notificaciones -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notificación</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <header>
+            <img src="{{ url_for('static', filename='images/portada.jpg') }}" alt="Imagen de portada" class="header-image">
+            <h1>Proyecto Abigail: Descubre la Verdad Oculta</h1>
+            <!-- Barra de búsqueda -->
+            <div class="search-bar">
+                <input type="text" id="search-input" class="form-control" placeholder="Buscar en artículos...">
+                <button id="search-button" class="btn">Buscar</button>
+            </div>
+            <!-- Botón de tema claro/oscuro -->
+            <button id="theme-toggle" class="btn">Cambiar a Tema Claro</button>
+            <nav>
+                <ul>
+                    <li><a href="#home" class="nav-link">Inicio</a></li>
+                    <li><a href="#area51-article" class="nav-link">Área 51</a></li>
+                    <li><a href="#projects-article" class="nav-link">Secretos del gobierno</a></li>
+                    <li><a href="#contact-article" class="nav-link">Contacto</a></li>
+                    <li><button id="exit-button" class="nav-link exit-btn">Salir</button></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div id="home-section" class="content-section">
+            <!-- Video introductorio -->
+            <section class="intro-video">
+                <h2>El Experimento Perdido</h2>
+                <p>Sumérgete en los secretos del gobierno y el Área 51. ¿Qué se oculta bajo la superficie?</p>
+                <div class="video-container">
+                    <video controls>
+                        <source src="{{ url_for('static', filename='videos/video.mp4') }}" type="video/mp4">
+                        Tu navegador no soporta el video.
+                    </video>
+                </div>
+            </section>
+            
+            <!-- Galería de imágenes -->
+            <section class="image-gallery">
+                <h2>Artículos Destacados</h2>
+                <div class="gallery-images">
+                    <div class="article-card">
+                        <img src="{{ url_for('static', filename='images/alien-photo.jpg') }}" alt="Foto de un presunto extraterrestre">
+                        <div class="card-content">
+                            <h3>La foto de un OVNI real estuvo oculta 30 años: salió a la luz y es impactante</h3>
+                            <a href="#roswell-article" class="article-link">Leer más »</a>
+                        </div>
+                    </div>
+                    <div class="article-card">
+                        <img src="{{ url_for('static', filename='images/secret-document.jpg') }}" alt="Documento clasificado">
+                        <div class="card-content">
+                            <h3>Proyecto Abigail: El experimento que nunca existió</h3>
+                            <a href="#abigail-article" class="article-link">Leer más »</a>
+                        </div>
+                    </div>
+                    <div class="article-card">
+                        <img src="{{ url_for('static', filename='images/military-base.jpg') }}" alt="Base militar secreta">
+                        <div class="card-content">
+                            <h3>Área 51: ¿Qué se oculta realmente en la base?</h3>
+                            <a href="#area51-article" class="article-link">Leer más »</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lista de favoritos -->
+            <section class="favorites-section">
+                <h2>Mis Favoritos</h2>
+                <ul id="favorites-list"></ul>
+            </section>
+
+            <!-- Resultados de búsqueda -->
+            <section class="search-results" id="search-results">
+                <h2>Resultados de Búsqueda</h2>
+                <ul id="search-results-list"></ul>
+            </section>
+
+            <!-- Formulario de comentarios -->
+            <section class="comments-section">
+                <ul id="comments-list-home"></ul>
+                <form action="{{ url_for('post_comment') }}" method="POST" id="comment-form-home">
+                    <input type="hidden" name="article_id" value="home">
+                    <div class="mb-3">
+                        <label for="username-home" class="form-label">Nombre de Usuario:</label>
+                        <input type="text" class="form-control" id="username-home" name="username" required>
+                        <div class="invalid-feedback">El nombre de usuario debe tener al menos 3 caracteres.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment_text-home" class="form-label">Comentario:</label>
+                        <textarea class="form-control" id="comment_text-home" name="comment_text" required></textarea>
+                        <div class="invalid-feedback">El comentario debe tener al menos 5 caracteres y no contener palabras prohibidas.</div>
+                    </div>
+                    <button type="submit" class="btn">Enviar Comentario Clasificado</button>
+                </form>
+            </section>
+        </div>
+
+        <div id="roswell-article" class="content-section" style="display:none;">
+            <section class="article-content">
+                <h2>El incidente de Roswell</h2>
+                <p class="view-count">Visto <span id="view-count-roswell">0</span> veces</p>
+                <p>La foto conseguida por los chicos de Calvine. Es considerada la imagen más fiel de un objeto volador no identificado. (Captura: YouTube/LiathWolf) Según los cálculos, el objeto volador tendría unos 30 metros de largo. Los jóvenes, que se escondieron rápidamente, lograron obtener 6 fotografías de su hallazgo.</p>
+                <p>Los negativos de las imágenes fueron enviados al Daily Record, un diario local. Pero apenas llegaron a su poder, un trabajador del periódico se contactó con el Ministerio de Defensa.</p>
+                <p><a href="#">Leé también: Los avistamientos de OVNIS más famosos de la historia</a></p>
+                <p>Fue así que el gobierno de Reino Unido decidió ocultar el caso, en parte porque, según ellos, ya no suponía ninguna amenaza.</p>
+                <p>Recién en 2022, David Clark, un investigador de la materia, consiguió recuperar los negativos, los reveló y dio a conocer la impactante foto.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/alien-photo.jpg') }}" alt="Foto de un presunto extraterrestre">
+                    <p class="caption">Fotografía supuestamente de los restos de Roswell.</p>
+                </div>
+                <h3>Teorías y contra-teorías</h3>
+                <p>La imagen es aterradora por el tamaño del UFO (las siglas de OVNI en inglés) y se convirtió en una de las últimas pruebas sobre la existencia de vida extraterrestre e inteligente, de visita en nuestro planeta.</p>
+                <ul>
+                    <li><strong>Teoría del globo:</strong> La explicación oficial del gobierno.</li>
+                    <li><strong>Teoría del OVNI:</strong> La versión popular de que un OVNI se estrelló.</li>
+                    <li><strong>Testimonios:</strong> Documentos y declaraciones de testigos que sugieren una operación de limpieza encubierta.</li>
+                </ul>
+                <h3>Más allá de la superficie</h3>
+                <p>Mientras los teóricos de la conspiración se preparan para el viaje a Nevada y buscan rastros alienígenas en internet, los científicos piensan en la vida extraterrestre. "Me resultaría muy sorprendente que no exista vida extraterrestre", dice por ejemplo el astrobiólogo Dirk Schulze-Makuch, de la Universidad Técnica de Berlín. "Con los trillones de planetas y lunas que existen, sería extraño si fuésemos el único lugar donde hay vida".</p>
+                <p>Schulze-Makuch busca la vida en la forma más simple: los microbios. Para ello, intenta encontrar las condiciones exactas bajo las cuales puede existir esa vida. Debe haber una atmósfera, dice, o una capa de hielo que proteja la vida en un planeta.</p>
+                <p>Además, se necesita una presión de aire relativamente estable, no demasiada radiación y temperaturas razonablemente favorables; aunque los microbios pueden sobrevivir incluso en las condiciones más adversas, como en el desierto de Atacama en Chile, o en aguas termales a más de cien grados.</p>
+                <p>Imprescindible es, también, algún líquido, que no tiene que ser agua, podría ser metanol o amoníaco, sustancias venenosas en la Tierra, que podrían ser vitales en otro planeta. Un error frecuente es partir de las condiciones que hacen posible la vida en la Tierra, aclara este astrobiólogo.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/maxresdefault.jpg') }}" alt="Mapa de Roswell">
+                    <p class="caption">Documento de la Fuerza Aérea desclasificado sobre foto de alienigena.</p>
+                </div>
+                <button class="btn favorite-btn" data-article="roswell">Añadir a Favoritos</button>
+                <a href="#home" class="back-link">← Volver a la página principal</a>
+                <div class="comments-section">
+                    <ul id="comments-list-roswell"></ul>
+                    <form action="{{ url_for('post_comment') }}" method="POST" id="comment-form-roswell">
+                        <input type="hidden" name="article_id" value="roswell">
+                        <div class="mb-3">
+                            <label for="username-roswell" class="form-label">Nombre de Usuario:</label>
+                            <input type="text" class="form-control" id="username-roswell" name="username" required>
+                            <div class="invalid-feedback">El nombre de usuario debe tener al menos 3 caracteres.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment_text-roswell" class="form-label">Comentario:</label>
+                            <textarea class="form-control" id="comment_text-roswell" name="comment_text" required></textarea>
+                            <div class="invalid-feedback">El comentario debe tener al menos 5 caracteres y no contener palabras prohibidas.</div>
+                        </div>
+                        <button type="submit" class="btn">Enviar Comentario Clasificado</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <div id="abigail-article" class="content-section" style="display:none;">
+            <section class="article-content">
+                <h2>Proyecto Abigail: el experimento científico que convirtió a una mujer en monstruo</h2>
+                <p class="view-count">Visto <span id="view-count-abigail">0</span> veces</p>
+                <p>Todo habría ocurrido después de la Segunda Guerra Mundial, cuando el Área 51 fue designada como un territorio de uso militar y científico. Empezaron a desarrollar pruebas y experimentos de carácter confidencial que iban desde pruebas médicas hasta nucleares.</p>
+                <p>Se dice que pusieron en marcha un proyecto para estudiar la anatomía humana y para ello, requerían a un voluntario de confianza, ya que los resultados podían ser tan reveladores que debían asegurarse de mantenerlos en secreto.</p>
+                <p>A pesar de que se ha generado un gran discurso alrededor de esta historia, hay que tomar en cuenta que se trata de una creepypasta, es decir, un relato de terror que se comparte en Internet y poco a poco grana fuerza, e incluso veracidad, conforme los usuarios la comparten.</p>
+                <p>Se cree que esta historia tiene su origen de una prueba científica llamada ‘Bioesfera 2’, realizada en 1992, la cual pretendía determinar en qué situaciones extremas podía sobrevivir la humanidad. Para esto se construyeron en menos de una hectárea, un manglar, un desierto y un arrecife de coral, en donde vivieron siete personas durante un mes.</p>
+                <p>En este experimento trabajaron Abigail Ailing y Mark Van Thrillo quienes escaparon 2 años después de que inició el proyecto, debido a que el ambiente sellado de la biosfera propició el crecimiento descontrolado de plagas como gusanos y cucarachas, que atacaron directamente los cultivos.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/secret-document.jpg') }}" alt="Documento del Proyecto Abigail">
+                    <p class="caption">Supuesto documento del Proyecto Abigail.</p>
+                </div>
+                <h3>Los supuestos objetivos del proyecto</h3>
+                <p>Aunque no hay pruebas concluyentes de que el Proyecto Abigail haya existido, la historia sirve como un escalofriante recordatorio de los límites que los gobiernos podrían cruzar en su búsqueda de poder.</p>
+                <ul>
+                    <li><strong>Orígenes:</strong> Se rumorea que se originó en los años 50 en una instalación de investigación desconocida.</li>
+                    <li><strong>Sujeto de prueba:</strong> Se dice que el sujeto era un ser con una inteligencia superhumana.</li>
+                    <li><strong>Consecuencias:</strong> El experimento supuestamente salió mal, con resultados desastrosos y una criatura incontrolable.</li>
+                </ul>
+                <h3>El fenómeno Creepypasta</h3>
+                <p>Todo habría ocurrido después de la Segunda Guerra Mundial, cuando el Área 51 fue designada como un territorio de uso militar y científico. Empezaron a desarrollar pruebas y experimentos de carácter confidencial que iban desde pruebas médicas hasta nucleares.</p>
+                <p>Se dice que pusieron en marcha un proyecto para estudiar la anatomía humana y para ello, requerían a un voluntario de confianza, ya que los resultados podían ser tan reveladores que debían asegurarse de mantenerlos en secreto.</p>
+                <p>Existen múltiples versiones de qué se buscaba exactamente con el Proyecto Abigail. No obstante, una de las más conocidas dice que la joven habría sido expuesta a diferentes dosis de radiación, con motivo de que se analizara cómo le afectaba a los seres humanos, en épocas de pleno desarrollo de la investigación atómica.</p>
+                <p>Los resultados fueron del terror: Abigail habría comenzado a sufrir diversas mutaciones tanto mentales como físicas. Se dice que, a causa de las pruebas, su cuerpo se deformó por completo, generándole cambios que la volvieron irreconocible.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/abigail2.jpg') }}" alt="Imagen de archivo">
+                    <p class="caption">Imagen de archivo de una base de pruebas de la época.</p>
+                </div>
+                <button class="btn favorite-btn" data-article="abigail">Añadir a Favoritos</button>
+                <a href="#home" class="back-link">← Volver a la página principal</a>
+                <div class="comments-section">
+                    <ul id="comments-list-abigail"></ul>
+                    <form action="{{ url_for('post_comment') }}" method="POST" id="comment-form-abigail">
+                        <input type="hidden" name="article_id" value="abigail">
+                        <div class="mb-3">
+                            <label for="username-abigail" class="form-label">Nombre de Usuario:</label>
+                            <input type="text" class="form-control" id="username-abigail" name="username" required>
+                            <div class="invalid-feedback">El nombre de usuario debe tener al menos 3 caracteres.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment_text-abigail" class="form-label">Comentario:</label>
+                            <textarea class="form-control" id="comment_text-abigail" name="comment_text" required></textarea>
+                            <div class="invalid-feedback">El comentario debe tener al menos 5 caracteres y no contener palabras prohibidas.</div>
+                        </div>
+                        <button type="submit" class="btn">Enviar Comentario Clasificado</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <div id="area51-article" class="content-section" style="display:none;">
+            <section class="article-content">
+                <h2>Área 51: ¿La base secreta de los EE.UU.?</h2>
+                <p class="view-count">Visto <span id="view-count-area51">0</span> veces</p>
+                <p>El Área 51 es una instalación militar altamente clasificada de la Fuerza Aérea de los Estados Unidos, ubicada en Nevada. Su verdadero propósito ha sido objeto de intensa especulación y teorías de conspiración, especialmente con respecto a la investigación de vida extraterrestre y tecnologías avanzadas.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/military-base.jpg') }}" alt="Base militar secreta">
+                    <p class="caption">Vista satelital del Área 51.</p>
+                </div>
+                <h3>Teorías y proyectos</h3>
+                <p>A pesar de la negación oficial de su existencia durante décadas, la CIA finalmente reconoció el Área 51 en 2013, aunque solo para confirmar que se utilizó para el desarrollo de aviones espía como el SR-71 Blackbird.</p>
+                <ul>
+                    <li><strong>Pruebas de aeronaves:</strong> La explicación oficial del gobierno.</li>
+                    <li><strong>OVNIs y extraterrestres:</strong> La teoría más popular, impulsada por avistamientos y testimonios.</li>
+                    <li><strong>Proyectos de ingeniería inversa:</strong> La creencia de que se está trabajando en tecnología alienígena.</li>
+                </ul>
+                <h3>Avistamientos y testimonios</h3>
+                <p>Numerosos pilotos y ex trabajadores de la base han reportado extrañas actividades y avistamientos de aeronaves no identificadas. Estos testimonios han alimentado la creencia de que el Área 51 esconde más de lo que el gobierno está dispuesto a admitir.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/(1).jpg') }}" alt="Avistamiento reportado">
+                    <p class="caption">Un avistamiento de OVNI reportado cerca de la base.</p>
+                </div>
+                <h3>El Área 51 y sus misterios</h3>
+                <p>El Área 51 ha sido parte central de películas, libros, videojuegos y series que han alimentado teorías conspirativas sobre vida extraterrestre y pactos gubernamentales secretos. Desde Expediente X hasta Independence Day, la base se ha convertido en un símbolo de la opacidad del poder y el apetito popular por lo desconocido.</p>
+                <p>Tiger Mindset no asegura que haya extraterrestres en Nevada, pero deja abierta la puerta a la duda: “No sería la primera vez que el gobierno estadounidense niega proyectos que después resultan ser ciertos. Búsquense MK Ultra”.</p>
+                <p>En tiempos de sobreinformación y teorías virales, el Área 51 sigue siendo un mito vivo. Y en la era de las redes sociales, cualquier hilo puede ser la chispa que reencienda una obsesión global.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/alien.png') }}" alt="Símbolo del Área 51">
+                    <p class="caption">Símbolo popular del Área 51.</p>
+                </div>
+                <button class="btn favorite-btn" data-article="area51">Añadir a Favoritos</button>
+                <a href="#home" class="back-link">← Volver a la página principal</a>
+                <div class="comments-section">
+                    <ul id="comments-list-area51"></ul>
+                    <form action="{{ url_for('post_comment') }}" method="POST" id="comment-form-area51">
+                        <input type="hidden" name="article_id" value="area51">
+                        <div class="mb-3">
+                            <label for="username-area51" class="form-label">Nombre de Usuario:</label>
+                            <input type="text" class="form-control" id="username-area51" name="username" required>
+                            <div class="invalid-feedback">El nombre de usuario debe tener al menos 3 caracteres.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment_text-area51" class="form-label">Comentario:</label>
+                            <textarea class="form-control" id="comment_text-area51" name="comment_text" required></textarea>
+                            <div class="invalid-feedback">El comentario debe tener al menos 5 caracteres y no contener palabras prohibidas.</div>
+                        </div>
+                        <button type="submit" class="btn">Enviar Comentario Clasificado</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <div id="projects-article" class="content-section" style="display:none;">
+            <section class="article-content">
+                <h2>Proyectos Secretos</h2>
+                <p class="view-count">Visto <span id="view-count-projects">0</span> veces</p>
+                <p>La historia de la humanidad está llena de misterios y operaciones gubernamentales que han sido negadas por años. Estos proyectos, a menudo envueltos en el secretismo, han dado pie a las teorías de conspiración más elaboradas, desde experimentos de control mental hasta el desarrollo de tecnologías futuristas.</p>
+                <div class="video-container">
+                    <video controls>
+                        <source src="{{ url_for('static', filename='videos/proyectos.mp4') }}" type="video/mp4">
+                        Tu navegador no soporta el video.
+                    </video>
+                    <p class="caption">Documental sobre operaciones encubiertas.</p>
+                </div>
+                <h3>MK-Ultra: el oscuro legado del programa secreto de la CIA destinado a encontrar formas de control mental</h3>
+                <p>Hace 45 años, la Agencia Central de Inteligencia de Estados Unidos (CIA) fue forzada a publicar documentos que confirmaron lo que algunos ya sospechaban: había financiado experimentos de control mental, utilizando descargas eléctricas, drogas alucinógenas y otras terribles técnicas, a menudo sin el conocimiento de las víctimas.</p>
+                <p>Por la naturaleza de los abusos cometidos, los afectados sólo empezaron a entender qué había sucedido décadas después, y el oscuro legado del ultrasecreto programa conocido como MK-Ultra sigue vigente.</p>
+                <p>Todo comenzó a principios de la década de 1950, con la Guerra Fría en pleno apogeo.</p>
+                <p>Cuando algunos prisioneros de guerra liberados en Corea regresaron a casa defendiendo la causa comunista, la comunidad de inteligencia de EE.UU. se alarmó.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/cabecera-7.jpg') }}" alt="Documento del proyecto MK Ultra">
+                    <p class="caption">Documento desclasificado del proyecto MK Ultra.</p>
+                </div>
+                <h3>THE BLOP</h3>
+                <p>Los hidrófonos utilizados para detectar el Bloop fueron originalmente desarrollados por la Marina de los Estados Unidos para rastrear submarinos rusos durante la Guerra Fría. En aquel momento, el sonido abarcaba una vasta distancia, lo que alimentó teorías sobre gigantescos criaturas submarinas desconocidas, incluso más grandes que una ballena azul. Sin embargo, con el tiempo, las pruebas apuntaron constantemente hacia los fenómenos geofísicos.</p>
+                <p>La teoría de un animal gigantesco capaz de emitir un sonido tan potente fue refutada definitivamente por la NOAA, que explicó que “no era realista pensar que un animal pudiera producir un sonido con esas características”. Además, destacaron que casi todos los sonidos submarinos pueden clasificarse en categorías principales como geofísicos, meteorológicos, antropogénicos y biológicos (cetáceos, peces), y cualquier otra fuente generalmente resulta ser una interferencia electrónica.</p>
+                <p>La fascinación pública en torno al Bloop también tuvo origen en la ficción. Por ejemplo, se especuló que la ubicación coincida con el lugar ficticio de R’lyeh, donde el escritor H.P. Lovecraft ubicó a su mítico Cthulhu. Este tipo de fantasía ayudó a mantener vivo el misterio del Bloop, que ahora sabemos, se explica por un fenómeno natural más mundano.</p>
+                <p>Eric Scarabeo, en una entrada del blog Old Salt, mencionó irónicamente la comparativa entre el Bloop y la Gran Serpiente Marina de Gloucester de 1817. Aunque aquel monstruo marino fue avistado por muchos testigos, carece de evidencia física o grabaciones, a diferencia del Bloop, donde los datos electrónicos validaron su existencia. La peculiaridad de Bloop se entiende mejor con la tecnología moderna, algo que no estuvo presente en avistamientos históricos como el del monstruo de Gloucester.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/theblop.jpg') }}" alt="Foto de un destructor">
+                    <p class="caption">Imagen de comparación de tamaño a las demás especies</p>
+                </div>
+                <button class="btn favorite-btn" data-article="projects">Añadir a Favoritos</button>
+                <a href="#home" class="back-link">← Volver a la página principal</a>
+                <div class="comments-section">
+                    <ul id="comments-list-projects"></ul>
+                    <form action="{{ url_for('post_comment') }}" method="POST" id="comment-form-projects">
+                        <input type="hidden" name="article_id" value="projects">
+                        <div class="mb-3">
+                            <label for="username-projects" class="form-label">Nombre de Usuario:</label>
+                            <input type="text" class="form-control" id="username-projects" name="username" required>
+                            <div class="invalid-feedback">El nombre de usuario debe tener al menos 3 caracteres.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment_text-projects" class="form-label">Comentario:</label>
+                            <textarea class="form-control" id="comment_text-projects" name="comment_text" required></textarea>
+                            <div class="invalid-feedback">El comentario debe tener al menos 5 caracteres y no contener palabras prohibidas.</div>
+                        </div>
+                        <button type="submit" class="btn">Enviar Comentario Clasificado</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <div id="contact-article" class="content-section" style="display:none;">
+            <section class="article-content">
+                <h2>Contacto</h2>
+                <p class="view-count">Visto <span id="view-count-contact">0</span> veces</p>
+                <p>Si tienes alguna información clasificada o teorías sobre fenómenos inexplicables, no dudes en contactarnos. Estamos comprometidos con la búsqueda de la verdad y la desclasificación de los misterios que nos rodean. La información que proporcionas puede ser la pieza clave para resolver uno de los grandes enigmas de la humanidad.</p>
+                <h3>Envíanos tus pruebas</h3>
+                <p>Utiliza el formulario de contacto para compartir tus documentos, imágenes o testimonios. Nuestra red de investigadores analizará cada pista con la máxima confidencialidad. Juntos, podemos ir más allá de las explicaciones oficiales y revelar lo que realmente está sucediendo en las sombras.</p>
+                <div class="image-with-caption">
+                    <img src="{{ url_for('static', filename='images/contact.jpg') }}" alt="Mesa de investigación">
+                    <p class="caption">Un equipo de investigación analizando datos clasificados.</p>
+                </div>
+                <a href="#home" class="back-link">← Volver a la página principal</a>
+                <form action="{{ url_for('send_contact') }}" method="POST" id="contact-form" class="mt-4">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nombre:</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="invalid-feedback">El nombre debe tener al menos 2 caracteres.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email:</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="invalid-feedback">Por favor, ingresa un email válido.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Mensaje/Pruebas:</label>
+                        <textarea class="form-control" id="message" name="message" required></textarea>
+                        <div class="invalid-feedback">El mensaje debe tener al menos 10 caracteres.</div>
+                    </div>
+                    <button type="submit" class="btn">Enviar Información Clasificada</button>
+                </form>
+            </section>
+        </div>
+
+        <footer>
+            <p>Investigadores activos: {{ user_count }}</p>
+            <p>&copy; 2025 Proyecto Abigail. Todos los derechos reservados.</p>
+        </footer>
+    </div>
+
+    <!-- Service Worker -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(reg => console.log('Service Worker registrado:', reg))
+                .catch(err => console.error('Error al registrar Service Worker:', err));
+        });
+    }
+    </script>
+
+    <script>
+    $(document).ready(function() {
+        // Cargar comentarios dinámicamente
+        function loadComments(articleId, listId) {
+            $.get('/get_comments/' + articleId, function(comments) {
+                $('#' + listId).empty();
+                comments.forEach(function(comment) {
+                    $('#' + listId).append('<li><strong>' + comment.username + ':</strong> ' + comment.comment_text + ' (' + comment.timestamp + ')</li>');
+                });
+            });
+        }
+        loadComments('home', 'comments-list-home');
+        loadComments('roswell', 'comments-list-roswell');
+        loadComments('abigail', 'comments-list-abigail');
+        loadComments('area51', 'comments-list-area51');
+        loadComments('projects', 'comments-list-projects');
+
+        // Cargar contadores de visitas
+        function loadViewCount(articleId, elementId) {
+            $.get('/get_view_count/' + articleId, function(data) {
+                $('#' + elementId).text(data.count);
+            });
+        }
+        loadViewCount('roswell', 'view-count-roswell');
+        loadViewCount('abigail', 'view-count-abigail');
+        loadViewCount('area51', 'view-count-area51');
+        loadViewCount('projects', 'view-count-projects');
+        loadViewCount('contact', 'view-count-contact');
+
+        // Incrementar contador de visitas al cargar una sección
+        function incrementViewCount(articleId) {
+            $.post('/increment_view_count/' + articleId);
+        }
+
+        // Mostrar notificaciones con Toast
+        function showToast(message, isError = false) {
+            const toast = new bootstrap.Toast(document.getElementById('notificationToast'));
+            const toastBody = document.querySelector('#notificationToast .toast-body');
+            toastBody.textContent = message;
+            document.querySelector('#notificationToast').classList.toggle('bg-danger', isError);
+            document.querySelector('#notificationToast').classList.toggle('bg-success', !isError);
+            toast.show();
+        }
+
+        // Validación de formularios
+        const forbiddenWords = ['spam', 'publicidad', 'ofensivo'];
+        function validateForm(form) {
+            let isValid = true;
+            const username = form.find('input[name="username"]').val();
+            const comment = form.find('textarea[name="comment_text"]').val();
+            const name = form.find('input[name="name"]').val();
+            const email = form.find('input[name="email"]').val();
+            const message = form.find('textarea[name="message"]').val();
+
+            if (username && username.length < 3) {
+                form.find('input[name="username"]').addClass('is-invalid');
+                isValid = false;
+            } else {
+                form.find('input[name="username"]').removeClass('is-invalid');
+            }
+
+            if (comment) {
+                const hasForbiddenWord = forbiddenWords.some(word => comment.toLowerCase().includes(word));
+                if (comment.length < 5 || hasForbiddenWord) {
+                    form.find('textarea[name="comment_text"]').addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    form.find('textarea[name="comment_text"]').removeClass('is-invalid');
+                }
+            }
+
+            if (name && name.length < 2) {
+                form.find('input[name="name"]').addClass('is-invalid');
+                isValid = false;
+            } else {
+                form.find('input[name="name"]').removeClass('is-invalid');
+            }
+
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                form.find('input[name="email"]').addClass('is-invalid');
+                isValid = false;
+            } else {
+                form.find('input[name="email"]').removeClass('is-invalid');
+            }
+
+            if (message && message.length < 10) {
+                form.find('textarea[name="message"]').addClass('is-invalid');
+                isValid = false;
+            } else {
+                form.find('textarea[name="message"]').removeClass('is-invalid');
+            }
+
+            return isValid;
+        }
+
+        // Enviar formularios
+        $('#comment-form-home, #comment-form-roswell, #comment-form-abigail, #comment-form-area51, #comment-form-projects, #contact-form').on('submit', function(e) {
+            e.preventDefault();
+            const form = $(this);
+            if (validateForm(form)) {
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: form.serialize(),
+                    success: function() {
+                        showToast(form.attr('id') === 'contact-form' ? 
+                            '¡Tu mensaje clasificado ha sido enviado! Nuestros investigadores lo analizarán pronto.' : 
+                            '¡Comentario enviado! Tu teoría ha sido registrada en secreto.');
+                        form[0].reset();
+                        const articleId = form.find('input[name="article_id"]').val();
+                        if (articleId) {
+                            loadComments(articleId, 'comments-list-' + articleId);
+                        }
+                    },
+                    error: function() {
+                        showToast('Error al enviar el formulario. Inténtalo de nuevo.', true);
+                    }
+                });
+            } else {
+                showToast('Por favor, corrige los errores en el formulario.', true);
+            }
+        });
+
+        // Búsqueda de artículos
+        $('#search-button').on('click', function() {
+            const query = $('#search-input').val().toLowerCase().trim();
+            const resultsList = $('#search-results-list');
+            resultsList.empty();
+            if (query.length < 2) {
+                showToast('Ingresa al menos 2 caracteres para buscar.', true);
+                return;
+            }
+
+            const articles = [
+                { id: 'roswell', title: 'El incidente de Roswell', content: $('#roswell-article').text().toLowerCase() },
+                { id: 'abigail', title: 'Proyecto Abigail: el experimento científico que convirtió a una mujer en monstruo', content: $('#abigail-article').text().toLowerCase() },
+                { id: 'area51', title: 'Área 51: ¿La base secreta de los EE.UU.?', content: $('#area51-article').text().toLowerCase() },
+                { id: 'projects', title: 'Proyectos Secretos', content: $('#projects-article').text().toLowerCase() }
+            ];
+
+            const results = articles.filter(article => article.content.includes(query));
+            if (results.length === 0) {
+                resultsList.append('<li>No se encontraron resultados.</li>');
+            } else {
+                results.forEach(result => {
+                    resultsList.append(`<li><a href="#${result.id}-article" class="article-link">${result.title}</a></li>`);
+                });
+            }
+            $('#search-results').show();
+            showToast(`Se encontraron ${results.length} resultados.`);
+        });
+
+        // Gestión de favoritos
+        function loadFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const favoritesList = $('#favorites-list');
+            favoritesList.empty();
+            if (favorites.length === 0) {
+                favoritesList.append('<li>No hay artículos en favoritos.</li>');
+            } else {
+                favorites.forEach(fav => {
+                    favoritesList.append(`<li><a href="#${fav.id}-article" class="article-link">${fav.title}</a> <button class="btn remove-favorite" data-article="${fav.id}">Eliminar</button></li>`);
+                });
+            }
+        }
+
+        $('.favorite-btn').on('click', function() {
+            const articleId = $(this).data('article');
+            const title = $(this).closest('.article-content').find('h2').text();
+            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            if (!favorites.some(fav => fav.id === articleId)) {
+                favorites.push({ id: articleId, title: title });
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                showToast('Artículo añadido a favoritos.');
+                loadFavorites();
+            } else {
+                showToast('Este artículo ya está en favoritos.', true);
+            }
+        });
+
+        $('#favorites-list').on('click', '.remove-favorite', function() {
+            const articleId = $(this).data('article');
+            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            favorites = favorites.filter(fav => fav.id !== articleId);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            showToast('Artículo eliminado de favoritos.');
+            loadFavorites();
+        });
+
+        loadFavorites();
+
+        // Tema claro/oscuro
+        const themeToggle = $('#theme-toggle');
+        if (localStorage.getItem('theme') === 'light') {
+            $('body').addClass('light-theme');
+            themeToggle.text('Cambiar a Tema Oscuro');
+        }
+
+        themeToggle.on('click', function() {
+            $('body').toggleClass('light-theme');
+            const isLight = $('body').hasClass('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            themeToggle.text(isLight ? 'Cambiar a Tema Oscuro' : 'Cambiar a Tema Claro');
+        });
+
+        // Navegación fluida
+        $('a[href*="#"]').on('click', function(e) {
+            e.preventDefault();
+            const target = $(this.hash);
+            if (target.length) {
+                $('html, body').animate({
+                    scrollTop: target.offset().top
+                }, 500);
+                window.location.hash = this.hash;
+            }
+        });
+
+        // Lógica original para navegación y modal
+        const termsModal = document.getElementById('termsModal');
+        const mainContent = document.getElementById('main-content');
+        const contentSections = document.querySelectorAll('.content-section');
+        const exitButton = document.getElementById('exit-button');
+
+        const showSection = (hash) => {
+            contentSections.forEach(section => {
+                section.style.display = 'none';
+            });
+
+            if (hash === '#home' || hash === '') {
+                document.getElementById('home-section').style.display = 'block';
+            } else if (hash === '#roswell-article') {
+                document.getElementById('roswell-article').style.display = 'block';
+                incrementViewCount('roswell');
+            } else if (hash === '#abigail-article') {
+                document.getElementById('abigail-article').style.display = 'block';
+                incrementViewCount('abigail');
+            } else if (hash === '#area51-article') {
+                document.getElementById('area51-article').style.display = 'block';
+                incrementViewCount('area51');
+            } else if (hash === '#projects-article') {
+                document.getElementById('projects-article').style.display = 'block';
+                incrementViewCount('projects');
+            } else if (hash === '#contact-article') {
+                document.getElementById('contact-article').style.display = 'block';
+                incrementViewCount('contact');
+            }
+        };
+
+        const handleHashChange = () => {
+            showSection(window.location.hash);
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+
+        if (termsModal) {
+            termsModal.style.display = 'flex';
+            mainContent.style.display = 'none';
+        } else {
+            mainContent.style.display = 'block';
+            handleHashChange();
+        }
+
+        const rejectButton = document.getElementById('reject-button');
+        if (rejectButton) {
+            rejectButton.addEventListener('click', () => {
+                const modalTitle = document.getElementById('modal-title');
+                const modalText = document.getElementById('modal-text');
+                const modalButtons = document.getElementById('modal-buttons');
+                modalTitle.textContent = 'Acceso Denegado';
+                modalText.textContent = 'Lo sentimos, pero al no aceptar los términos y condiciones no puede ingresar a la página.';
+                modalButtons.style.display = 'none';
+            });
+        }
+
+        if (exitButton) {
+            exitButton.addEventListener('click', () => {
+                if (termsModal && mainContent) {
+                    termsModal.style.display = 'flex';
+                    mainContent.style.display = 'none';
+                    const modalTitle = document.getElementById('modal-title');
+                    const modalText = document.getElementById('modal-text');
+                    const modalButtons = document.getElementById('modal-buttons');
+                    modalTitle.textContent = 'Acceso Restringido';
+                    modalText.textContent = 'Este sitio web contiene información clasificada y sensible. Al continuar, usted acepta no divulgar esta información y se compromete a respetar la confidencialidad de los datos aquí presentados.';
+                    modalButtons.style.display = 'flex';
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>
