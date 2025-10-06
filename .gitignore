@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+proyecto.db  # Ignora tu DB local
+.env
